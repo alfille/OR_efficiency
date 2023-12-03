@@ -30,6 +30,35 @@ def dataslurp(csv=None):
         csv.close()
     return data
 
+class onTime:
+    def __init__(self, data):
+        lines = data.split("\n")
+        titles=lines[0].split(",")
+        self.fulldata = {
+            "type": titles[0],
+            "data":{},
+            }
+        
+        for l in lines[1:]:
+            q = False
+            li = []
+            for ll in l:
+                if ll == '"':
+                    q = not q
+                elif ll == ',':
+                    if q:
+                        li.append('@')
+                    else:
+                        li.append(ll)
+                else:
+                    li.append(ll)
+            li = ''.join(li)
+            lin = []
+            for ll in li.split(','):
+                lin.append(ll.replace('@',','))
+            self.fulldata["data"][lin[0]]=dict(zip(titles[1:],lin[1:]))
+        print(self.fulldata['data'])
+
 
 def main( sysargs ):
     try:
@@ -41,10 +70,15 @@ def main( sysargs ):
         args=parser.parse_args()
         csv = args.csv
         print(sysargs,args)
+    except KeyboardInterrupt:
+        sys.exit("\nNo file to work on.")
     except:
         csv = None
+
+    data = dataslurp(csv)
         
-    print( dataslurp(csv) )
+    print( data )
+    onTime(data)
 
 
 if __name__ == "__main__":
