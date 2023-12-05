@@ -1,4 +1,4 @@
-    #!/usr/bin/python3
+#!/usr/bin/python3
 
 import tkinter as tk
 from tkinter import filedialog
@@ -19,11 +19,13 @@ import matplotlib.pyplot as plt
 import matplotlib.gridspec as gridspec
 import pandas as pd
 
-def dataslurp(csv=None,ctype="Raw Data CSV file"):
+def dataslurp(csv=None,file_prompt="Raw Data CSV file"):
+	# Possibly request file (if not specified on command line) and read it in
     if csv == None:
+		# Use Tk file dialog
         root = tk.Tk()
         root.withdraw()
-        file_csv = filedialog.askopenfile(mode='r',title=ctype,filetypes=(
+        file_csv = filedialog.askopenfile(mode='r',title=file_prompt,filetypes=(
             ("CSV files","*.csv"),
             ("CSV files","*.CSV"),
             ("Text file","*.txt"),
@@ -43,63 +45,69 @@ def dataslurp(csv=None,ctype="Raw Data CSV file"):
     return data
 
 class onTime:
+	data_column = "OnTime"
+	
     def __init__(self,data):
-            column = "OnTime"
-
+		# read in data csv after removing "%"
         self.data = pd.read_csv(io.StringIO(data.replace("%","")))
-        self.column = "OnTime"
         print(self.data)
 
     def reindex(self):
         # Change the index to the names column
-        self.title = self.data.columns[0]
-        self.data.index=self.data[self.title]
+        self.rolegroup = self.data.columns[0]
+        self.data.index=self.data[self.rolegroup]
 
-    def single_plot(self, person):
-        count = self.data.loc[[person],"Count of LOG_ID"].iloc[0]
-        print(person)
-        maj = self.data.loc[[person],"Majority Service"].iloc[0]
-        #print( pd.DataFrame({person:self.data.loc[[x],"OnTime"],maj:self.data.loc[self.data["Majority Service"]==maj,"OnTime"]}))
-        df= pd.DataFrame({
-            person:self.data.loc[[person],"OnTime"],
-            maj:self.data.loc[self.data["Majority Service"]==maj,"OnTime"]
+	def cases(self,person):
+		# Number of cases included
+		return self.data.loc[[person],"Count of LOG_ID"].iloc[0]
+
+	def make_df(self,person):
+		# Make a dataframe of person's data vs everyone's data for comparison
+        conparable_group = self.data.loc[[person],"Majority Service"].iloc[0]
+        return pd.DataFrame({
+            person:self.data.loc[[person],type(self).data_column],
+            conparable_group:self.data.loc[self.data["Majority Service"]==conparable_group,type(self).data_column]
             })
-        #df.plot.box()
+
+	def title(self, person):
+		# title of chart
+		return f"On Time Start % for {(person.split(','))[0]}\n{self.cases(person)} cases"
+		
+    def single_plot(self, person):
+		# plot this person's data
+        print(person,type(self).__name__)
+        df = self.make_df(person) # dataframe
         sns.set_context("paper")
+        # Boxplot
         ax0 = sns.boxplot(  data=df)
+        # Superimposed individual data points
         ax1 = sns.swarmplot(data=df)
-        plt.title(f"On Time Start % for {(person.split(','))[0]}\n{count} cases")
-        #plt.savefig(f"{person}.Start.png")
+        plt.title(self.title(person))
+        #plt.savefig(f"{person}.{type(self).__name__}.png")
         #plt.show()
         plt.close()
 
     def plot(self):
-        #print(self.data[["Majority Service","OnTime"]])
+		# make everyone's plot
         self.reindex()
-        for person in self.data[self.title]:
+        for person in self.data[self.rolegroup]:
             self.single_plot(person)
 
 class turnOver(onTime):
-    def single_plot(self, person):
-        count = self.data.loc[[person],"Count of LOG_ID"].iloc[0]
-        #print(person)
-        maj = f"All {self.title}"
-        #print( pd.DataFrame({person:self.data.loc[[x],"OnTime"],maj:self.data.loc[self.data["Majority Service"]==maj,"OnTime"]}))
-        df= pd.DataFrame({
-            person:self.data.loc[[person],"ROOM_OUT_TO_IN_ADJ"],
-            maj:self.data.loc["ROOM_OUT_TO_IN_ADJ"]
+	data_column = "Avg. ROOM_OUT_TO_IN_ADJ"
+
+	def make_df(self,person):
+        conparable_group = f"All {self.rolegroup}"
+        return pd.DataFrame({
+            person:self.data.loc[[person],type(self).data_column],
+            conparable_group:self.data.loc[type(self).data_column]
             })
-        #df.plot.box()
-        sns.set_context("paper")
-        ax0 = sns.boxplot(  data=df)
-        ax1 = sns.swarmplot(data=df)
-        plt.title(f"Case Turnover Time (min) for {(person.split(','))[0]}\n{count} cases")
-        #plt.savefig(f"{person}.Turnover.png")
-        plt.show()
-        plt.close()
 
-
+	def title(self, person):
+		return f"Case Turnover Time (min) for {(person.split(','))[0]}\n{self.cases(person)} cases"
+		
 def main( sysargs ):
+	# Command line first
     try:
         parser = argparse.ArgumentParser(
             prog="Efficiency feedback",
@@ -134,12 +142,14 @@ def main( sysargs ):
         turnover=None
         print(f"Error opening one of the files in the command line:\n\t{sysargs[1:]}\n")
 
+	#Start Times
     data = dataslurp(start,"Starting times (OnTime)")
         
     #print( data )
     ont = onTime(data)
     ont.plot()
 
+    #Turnover
     data = dataslurp(turnover,"Turnover Times")
     #print(data)
 
