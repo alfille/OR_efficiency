@@ -8,12 +8,13 @@ import argparse
 import io
 import seaborn as sns
 import json
+from os.path import exists as file_exists
 
 try:
 #    import win32com.client
     pass
 except:
-    sys.exit('\nInstall module win32com\nSee https://www.makeuseof.com/send-outlook-emails-using-python/\n')
+    sys.exit('\nInstall module win32com\nSee https://www.makeuseof.com/send-outlook-emails-usi  ng-python/\n')
 
 #import seaborn as sns
 import matplotlib.pyplot as plt
@@ -51,7 +52,7 @@ class dataSet:
             # Use Tk file dialog
             root = tk.Tk()
             root.withdraw()
-            csv_name = filedialog.askopenfilename(mode='r',title=type(self).file_prompt,filetypes=(
+            csv_name = filedialog.askopenfilename(title=type(self).file_prompt,filetypes=(
                 ("CSV files","*.csv"),
                 ("CSV files","*.CSV"),
                 ("Text file","*.txt"),
@@ -112,7 +113,7 @@ class onTime(dataSet):
         # Superimposed individual data points
         ax1 = sns.swarmplot(data=df)
         plt.title(self.title(person))
-        #plt.savefig(f"{person}.{type(self).__name__}.png")
+        plt.savefig(f"{person}.{type(self).__name__}.png")
         #plt.show()
         plt.close()
 
@@ -142,8 +143,16 @@ class eMail(turnOver):
     def __init__(self,email_file):
         # just from file
         self.filedict = self.emailslurp(email_file)
+        print("Names data:")
+        print(type(self.filedict))
+        print(self.filedict)
         # add in all names fron datasets as secondary entries
-        self.fulldict = self.filedict | self.namedict
+        self.fulldict = self.filedict | self.namedict()
+        print("Names data:")
+        print(type(self.fulldict))
+        print(self.fulldict)
+        # outlook handle
+        self.outlook=win32com.client.Dispatch('Outlook.Application')
 
     def emailslurp(self, json_name=""):
         # Possibly request file (if not specified on command line) and read it in
@@ -152,7 +161,7 @@ class eMail(turnOver):
             # Use Tk file dialog
             root = tk.Tk()
             root.withdraw()
-            json_name = filedialog.askopenfilename(mode='r',title=type(self).file_prompt,filetypes=(
+            json_name = filedialog.askopenfilename(title=type(self).file_prompt,filetypes=(
                 ("JSON files","*.json"),
                 ("JSON files","*.JSON"),
                 ("Text file","*.txt"),
@@ -168,6 +177,9 @@ class eMail(turnOver):
         except:
             print(f"{type(self).file_prompt} Unable to read {json_name}\n") 
             data = json.loads("{}")
+        print("Email data:")
+        print(type(data))
+        print(data)
         return data
 
     def email_all(self):
@@ -175,14 +187,35 @@ class eMail(turnOver):
             self.email_person( person )
 
     def email_person( self, person ):
-        if self.fulldict[peron] == "" :
+        if self.fulldict[person] == "" :
             print(f"{person} has no email address")
         else:
             self.make_letter(person)
 
     def make_letter( self, person ):
-        
+        letter = 0x0 # Initial size of email ??
+        newmail = self.outlook.CreateItem(letter)
+        newmail.Subject = "Personalized OR Efficiency Feedback"
+        newmail.To = self.fulldict[person]
+        fil = f"{person}.onTime.png"
+        if file_exists(fil):
+            newmail.Attachments.Add(fil)
+        fil = f"{person}.turnOver.png"
+        if file_exists(fil):
+            newmail.Attachments.Add(fil)
+        newmail.Body = """
+Dear Colleague,
 
+As part of the OR Efficiency Project, we are sending you data on the cases you were involved with.
+The data reflects the joint efforts of your team, but helps you compare the way your team performs
+compared to others.
+
+We hope you will share any problems or solutions you discover with us to help the MGH ORs meet it's
+goal.
+
+Your PeriOp Team
+"""
+        newmail.Send()
         
 def main( sysargs ):
     # Command line first
@@ -240,7 +273,8 @@ def main( sysargs ):
     tur.plot()
 
     #email addresses
-    email_data = emailslurp(args.email)
+    ema = eMail(args.email)
+    ema.email_all()
 
 if __name__ == "__main__":
     sys.exit(main(sys.argv))
