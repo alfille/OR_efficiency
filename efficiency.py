@@ -11,10 +11,11 @@ import json
 from os.path import exists as file_exists
 
 try:
-#    import win32com.client
-    pass
+    import win32com.client
+    email_enabled = True
 except:
-    sys.exit('\nInstall module win32com\nSee https://www.makeuseof.com/send-outlook-emails-usi  ng-python/\n')
+    print('\nInstall module win32com\nSee https://www.makeuseof.com/send-outlook-emails-usi  ng-python/\n')
+    email_enabled = True
 
 #import seaborn as sns
 import matplotlib.pyplot as plt
@@ -143,16 +144,11 @@ class eMail(turnOver):
     def __init__(self,email_file):
         # just from file
         self.filedict = self.emailslurp(email_file)
-        print("Names data:")
-        print(type(self.filedict))
-        print(self.filedict)
         # add in all names fron datasets as secondary entries
         self.fulldict = self.filedict | self.namedict()
-        print("Names data:")
-        print(type(self.fulldict))
-        print(self.fulldict)
         # outlook handle
-        self.outlook=win32com.client.Dispatch('Outlook.Application')
+        if email_enabled:
+            self.outlook=win32com.client.Dispatch('Outlook.Application')
 
     def emailslurp(self, json_name=""):
         # Possibly request file (if not specified on command line) and read it in
@@ -177,9 +173,6 @@ class eMail(turnOver):
         except:
             print(f"{type(self).file_prompt} Unable to read {json_name}\n") 
             data = json.loads("{}")
-        print("Email data:")
-        print(type(data))
-        print(data)
         return data
 
     def email_all(self):
@@ -193,17 +186,18 @@ class eMail(turnOver):
             self.make_letter(person)
 
     def make_letter( self, person ):
-        letter = 0x0 # Initial size of email ??
-        newmail = self.outlook.CreateItem(letter)
-        newmail.Subject = "Personalized OR Efficiency Feedback"
-        newmail.To = self.fulldict[person]
-        fil = f"{person}.onTime.png"
-        if file_exists(fil):
-            newmail.Attachments.Add(fil)
-        fil = f"{person}.turnOver.png"
-        if file_exists(fil):
-            newmail.Attachments.Add(fil)
-        newmail.Body = """
+        if email_enabled:
+            letter = 0x0 # Initial size of email ??
+            newmail = self.outlook.CreateItem(letter)
+            newmail.Subject = "Personalized OR Efficiency Feedback"
+            newmail.To = self.fulldict[person]
+            fil = f"{person}.onTime.png"
+            if file_exists(fil):
+                newmail.Attachments.Add(fil)
+            fil = f"{person}.turnOver.png"
+            if file_exists(fil):
+                newmail.Attachments.Add(fil)
+            newmail.Body = """
 Dear Colleague,
 
 As part of the OR Efficiency Project, we are sending you data on the cases you were involved with.
@@ -215,7 +209,7 @@ goal.
 
 Your PeriOp Team
 """
-        newmail.Send()
+            newmail.Send()
         
 def main( sysargs ):
     # Command line first
