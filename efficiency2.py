@@ -72,8 +72,10 @@ class dataSet:
         return data
 
 class onTime(dataSet):
-    target_column = "OnTime"
-    casecount_column = "Count of LOG_ID"
+    target_column_raw = "OnTime"
+    target_column     = "On Time %"
+    casecount_column_raw = "Count of LOG_ID"
+    casecount_column     = "Cases"
     filter_column = "Majority Service"
 
     namelist = []
@@ -81,52 +83,55 @@ class onTime(dataSet):
     
     def __init__(self,data):
         super().__init__(data)
-        print(self.full_dataframe)
-
-    def reindex(self):
-        # Change the index to the names column
+        self.full_dataframe.rename(columns={
+            type(self).target_column_raw:    type(self).target_column,
+            type(self).casecount_column_raw: type(self).casecount_column ,
+            }, inplace=True)
         self.rolegroup = self.full_dataframe.columns[0]
-        self.full_dataframe.index=self.full_dataframe[self.rolegroup]
+        #print(self.full_dataframe)
 
+    def select_person(self,person):
+        return self.full_dataframe[self.rolegroup] == person
+        
     def cases(self,person):
         # Number of cases included
-        return self.full_dataframe.loc[[person],type(self).casecount_column].iloc[0]
+        return self.full_dataframe.loc[self.select_person(person),type(self).casecount_column].iloc[0]
 
     def make_df(self,person):
+        #print( "SELECT",self.select_person(person),~self.select_person(person))
         # Make a dataframe of person's data vs everyone's data for comparison
-        conparable_group = self.full_dataframe.loc[[person],type(self).filter_column].iloc[0]
-        return pd.DataFrame({
-            person:           self.full_dataframe.loc[[person],type(self).target_column],
-            conparable_group: self.full_dataframe.loc[self.full_dataframe[type(self).filter_column]==conparable_group,type(self).target_column]
-            })
+        conparable_group = self.full_dataframe.loc[self.select_person(person),type(self).filter_column].iloc[0]
+        non_person = type(self).namelist[:]
+        non_person.remove(person)
+        return self.full_dataframe.replace( non_person,f"Other {conparable_group}",inplace=False)
 
     def title(self, person):
         # title of chart
-        return f"On Time Start % for {(person.split(','))[0]}\n{self.cases(person)} cases"
+        return f"{type(self).target_column} for {(person.split(','))[0]}\n{self.cases(person)} cases"
         
     def single_plot(self, person):
         # plot this person's data
-        print(person,type(self).__name__)
+        print(f"{person} Processing: {type(self).__name__}")
         df = self.make_df(person) # dataframe
+        #print(df)
         sns.set_context("paper")
         # Boxplot
-        ax0 = sns.boxplot(  data=df)
+        ax0 = sns.boxplot(  data=df, x=self.rolegroup, y=type(self).target_column)
         # Superimposed individual data points
-        ax1 = sns.swarmplot(data=df)
-        ax1 = sns.stripplot(data=df)
+        ax0 = sns.stripplot(  data=df, x=self.rolegroup, y=type(self).target_column, hue=type(self).casecount_column)
         plt.title(self.title(person))
         plt.savefig(f"{person}.{type(self).__name__}.png")
-        plt.show()
+        #plt.show()
         plt.close()
 
     def plot(self):
         # make everyone's plot
-        self.reindex()
         for person in self.full_dataframe[self.rolegroup]:
             self.single_plot(person)
 
 class turnOver(onTime):
-    target_column = "Avg. ROOM_OUT_TO_IN_ADJ"
+    target_column_raw = "Avg. ROOM_OUT_TO_IN_ADJ"
+    target_column     = "Turnover minutes"
     file_prompt = "Turnover Times"
 
     def make_df(self,person):
@@ -136,9 +141,6 @@ class turnOver(onTime):
             conparable_group: self.full_dataframe[type(self).target_column]
             })
 
-    def title(self, person):
-        return f"Case Turnover Time (min) for {(person.split(','))[0]}\n{self.cases(person)} cases"
-        
 class eMail(turnOver):
     file_prompt="Email addresses in JSON format"
     
@@ -205,8 +207,8 @@ As part of the OR Efficiency Project, we are sending you data on the cases you w
 The data reflects the joint efforts of your team, but helps you compare the way your team performs
 compared to others.
 
-We hope you will share any problems or solutions you discover with us to help the MGH ORs meet it's
-goal.
+We hope you will share any problems or solutions you discover with us to help the MGH ORs meet the
+goals.
 
 Your PeriOp Team
 """
