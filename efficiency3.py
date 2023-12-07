@@ -76,6 +76,8 @@ class onTime(dataSet):
     target_column     = "On Time %"
     casecount_column_raw = "Count of LOG_ID"
     casecount_column     = "Cases"
+    service_column_raw = "SERVICE"
+    service_column     = "Service"
     filter_column = "Majority Service"
 
     namelist = []
@@ -83,15 +85,31 @@ class onTime(dataSet):
     
     def __init__(self,data):
         super().__init__(data)
+
+        # Rename some columns
         self.full_dataframe.rename(columns={
             type(self).target_column_raw:    type(self).target_column,
             type(self).casecount_column_raw: type(self).casecount_column ,
+            type(self).service_column_raw:   type(self).service_column ,
             }, inplace=True)
+
+        # Person Type (ANESTHESIOLOGIST, CRNA, ...)
         self.rolegroup = self.full_dataframe.columns[0]
-        #print(self.full_dataframe)
+
+        # Summary with Major?
+        self.majority         = type(self).filter_column  in self.full_dataframe.columns
+
+        # Includes Serivce breakdowns
+        self.service_included = type(self).service_column in self.full_dataframe.columns
 
     def select_person(self,person):
         return self.full_dataframe[self.rolegroup] == person
+        
+    def select_service(self,service):
+        return self.full_dataframe[type(self).service_column] == service
+
+    def get_services( self, person ):
+        return self.full_dataframe.loc[self.select_person(person),type(self).service_column]
         
     def cases(self,person):
         # Number of cases included
@@ -100,46 +118,59 @@ class onTime(dataSet):
     def make_df(self,person):
         #print( "SELECT",self.select_person(person),~self.select_person(person))
         # Make a dataframe of person's data vs everyone's data for comparison
-        conparable_group = self.full_dataframe.loc[self.select_person(person),type(self).filter_column].iloc[0]
-        non_person = type(self).namelist[:]
-        non_person.remove(person)
-        return self.full_dataframe.replace( non_person,f"Other {conparable_group}",inplace=False)
+        non_person = type(self).namelist[:] # needs to be a copy
+        non_person.remove(person) # comparators
 
-    def title(self, person):
-        # title of chart
-        return f"{type(self).target_column} for {(person.split(','))[0]}\n{self.cases(person)} cases"
-        
+        if self.majority:
+            conparable_group = self.full_dataframe.loc[self.select_person(person),type(self).filter_column].iloc[0]
+            df = self.full_dataframe.replace( non_person,f"Other {conparable_group}",inplace=False)
+            return df.loc[df[type(self).filter_column]==conparable_group]
+        else:
+            return self.full_dataframe.replace( non_person,f"Other {self.rolegroup}",inplace=False)
+
+    def make_service_df(self,person,services):
+        #print( "SELECT",self.select_person(person),~self.select_person(person))
+        # Make a dataframe of person's data vs everyone's data for comparison
+        non_person = type(self).namelist[:] # needs to be a copy
+        non_person.remove(person) # comparators
+        df = self.full_dataframe.replace( non_person,f"Other {self.rolegroup}",inplace=False)
+        return df[df[type(self).service_column].isin(list(services))]
+
     def single_plot(self, person):
         # plot this person's data
         print(f"{person} Processing: {type(self).__name__}")
-        df = self.make_df(person) # dataframe
         #print(df)
         sns.set_context("paper")
-        # Boxplot
-        ax0 = sns.boxplot(  data=df, x=self.rolegroup, y=type(self).target_column)
-        # Superimposed individual data points
-        ax0 = sns.stripplot(  data=df, x=self.rolegroup, y=type(self).target_column, hue=type(self).casecount_column)
-        plt.title(self.title(person))
+        if self.service_included:
+            services = self.get_services(person)
+            df = self.make_service_df(person,services) # dataframe
+            cases = " ".join(list(map(lambda s,c:f"{s}={c}",list(services),list(df.loc[self.select_person(person),type(self).casecount_column]))))
+            ax0 = sns.stripplot( data=df, x=self.rolegroup, y=type(self).target_column, hue=type(self).service_column)
+            #ax1 = sns.boxplot( data=df, x=self.rolegroup, y=type(self).target_column, hue=type(self).service_column)
+            ax1 = sns.violinplot( data=df, x=self.rolegroup, y=type(self).target_column, saturation=.6, hue=type(self).service_column)
+            plt.title(f"{type(self).target_column} for {(person.split(','))[0]}\nCases: {cases}")
+        else:
+            df = self.make_df(person) # dataframe
+            #print(df.to_string())
+            # Boxplot
+            #ax0 = sns.boxplot(  data=df, x=self.rolegroup, y=type(self).target_column)
+            ax0 = sns.violinplot(  data=df, x=self.rolegroup, y=type(self).target_column)
+            # Superimposed individual data points
+            ax0 = sns.stripplot(  data=df, x=self.rolegroup, y=type(self).target_column, hue=type(self).casecount_column)
+            plt.title(f"{type(self).target_column} for {(person.split(','))[0]}\n{self.cases(person)} cases")
         plt.savefig(f"{person}.{type(self).__name__}.png")
-        #plt.show()
+        plt.show()
         plt.close()
 
     def plot(self):
         # make everyone's plot
-        for person in self.full_dataframe[self.rolegroup]:
+        for person in list(dict.fromkeys(self.full_dataframe[self.rolegroup])):
             self.single_plot(person)
 
 class turnOver(onTime):
     target_column_raw = "Avg. ROOM_OUT_TO_IN_ADJ"
     target_column     = "Turnover minutes"
     file_prompt = "Turnover Times"
-
-    def make_df(self,person):
-        conparable_group = f"All {self.rolegroup}"
-        return pd.DataFrame({
-            person:           self.full_dataframe.loc[[person],type(self).target_column],
-            conparable_group: self.full_dataframe[type(self).target_column]
-            })
 
 class eMail(turnOver):
     file_prompt="Email addresses in JSON format"
