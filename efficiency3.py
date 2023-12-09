@@ -147,14 +147,14 @@ class onTime(dataSet):
             cases = " ".join(list(map(lambda s,c:f"{s}={c}",list(services),list(df.loc[self.select_person(person),type(self).casecount_column]))))
             ax0 = sns.stripplot( data=df, x=self.rolegroup, y=type(self).target_column, hue=type(self).service_column)
             #ax1 = sns.boxplot( data=df, x=self.rolegroup, y=type(self).target_column, hue=type(self).service_column)
-            ax1 = sns.violinplot( data=df, x=self.rolegroup, y=type(self).target_column, saturation=.6, hue=type(self).service_column)
+            ax1 = sns.violinplot( data=df, x=self.rolegroup, y=type(self).target_column, saturation=0.5, cut=0, inner="box",hue=type(self).service_column)
             plt.title(f"{type(self).target_column} for {(person.split(','))[0]}\nCases: {cases}")
         else:
             df = self.make_df(person) # dataframe
             #print(df.to_string())
             # Boxplot
             #ax0 = sns.boxplot(  data=df, x=self.rolegroup, y=type(self).target_column)
-            ax0 = sns.violinplot(  data=df, x=self.rolegroup, y=type(self).target_column)
+            ax0 = sns.violinplot(  data=df, x=self.rolegroup, y=type(self).target_column, saturation=0.5, cut=0, inner="box")
             # Superimposed individual data points
             ax0 = sns.stripplot(  data=df, x=self.rolegroup, y=type(self).target_column, hue=type(self).casecount_column)
             plt.title(f"{type(self).target_column} for {(person.split(','))[0]}\n{self.cases(person)} cases")
