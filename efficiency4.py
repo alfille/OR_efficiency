@@ -162,6 +162,7 @@ class dataSetType(dataSet):
         sns.set_style("whitegrid")
         sns.set_context("paper")
         sns.despine(offset=10, trim=True)
+        plt.figure(figsize=(60,32))
 
     def post_plot( self, person ):
         name = self.iStore.generate_imagename(person)
