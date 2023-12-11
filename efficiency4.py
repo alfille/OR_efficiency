@@ -159,15 +159,14 @@ class dataSetType(dataSet):
             return self.sort(df)
 
     def pre_plot(self):
+        sns.set_context("notebook")
         sns.set_style("whitegrid")
-        sns.set_context("poster")
         sns.despine(offset=10, trim=True)
         
-
     def post_plot( self, person ):
         name = self.iStore.generate_imagename(person)
         plt.savefig(name)
-        #plt.show()
+        plt.show()
         plt.close()
 
     def single_plot(self, person):
