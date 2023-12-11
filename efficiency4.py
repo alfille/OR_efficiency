@@ -160,9 +160,8 @@ class dataSetType(dataSet):
 
     def pre_plot(self):
         sns.set_style("whitegrid")
-        sns.set_context("paper")
+        sns.set_context("poster")
         sns.despine(offset=10, trim=True)
-        sns.set(rc={'figure.figsize':(11.7,8.27)})
         
 
     def post_plot( self, person ):
