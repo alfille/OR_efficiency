@@ -308,7 +308,7 @@ class imageStore:
             
         return image_name
 
-    def generate_collage( self, person ):
+    def xgenerate_collage( self, person ):
         # Combine this person's iamges into one, and return that name
 
         image_name = None
@@ -337,6 +337,53 @@ class imageStore:
                 for im in images:
                   new_im.paste(im, (0,y_offset))
                   y_offset += im.size[1]
+
+                if type(self).mag != 1:
+                    new_im = new_im.resize( (new_width*type(self).mag, new_height*type(self).mag), Image.BICUBIC)
+
+                new_im.save(image_name)
+
+        return image_name
+
+    def generate_collage( self, person ):
+        # Combine this person's iamges into one, and return that name
+
+        image_name = None
+        
+        if person in type(self).image_store:
+
+            image_list = type(self).image_store[person]
+
+            if len(image_list) > 0:
+
+                # get (and update) a unique number
+                serial_number = type(self).serial_number
+                type(self).serial_number = serial_number + 1
+
+                image_name = f"Feedback_{serial_number}.png"
+
+                images = [Image.open(i) for i in image_list ]
+                widths, heights = zip(*(i.size for i in images))
+
+                max_height = max(heights)
+                max_width = max(widths)
+                num_images = len(image_list)
+
+                new_height = max_height * ( (num_images+1)//2 )
+                new_width = max_width * 2
+
+                new_im = Image.new('RGB', (new_width, new_height))
+
+                x_offset = 0
+                y_offset = 0
+
+                for im in images:
+                    new_im.paste(im, (x_offset,y_offset))
+                    if x_offset == 0:
+                        x_offset += max_width
+                    else:
+                        x_offset = 0
+                        y_offset += max_height
 
                 if type(self).mag != 1:
                     new_im = new_im.resize( (new_width*type(self).mag, new_height*type(self).mag), Image.BICUBIC)
