@@ -162,7 +162,6 @@ class dataSetType(dataSet):
         sns.set_style("whitegrid")
         sns.set_context("paper")
         sns.despine(offset=10, trim=True)
-        plt.figure(figsize=(15,8))
 
     def post_plot( self, person ):
         name = self.iStore.generate_imagename(person)
@@ -259,7 +258,6 @@ class eMail(dataSetType):
         print(self.fulldict[person])
         if self.fulldict[person] == "":
             print(f"{person} has no email address")
-            print(f"Collage: {self.iStore.generate_collage(person)}")
         else:
             self.make_letter(person)
 
@@ -271,8 +269,6 @@ class eMail(dataSetType):
             newmail.To = self.fulldict[person]
             fil = self.iStore.generate_collage(person)
             if fil != None:
-                print(os.getcwd())
-                print(fil)
                 newmail.Attachments.Add(os.path.join(os.getcwd(),fil))
             newmail.Body = """
 Dear Colleague,
