@@ -269,7 +269,7 @@ class eMail(dataSetType):
             if fil != None:
                 print(os.getcwd())
                 print(fil)
-                newmail.Attachments.Add(fil)
+                newmail.Attachments.Add(os.path.join(os.getcwd(),fil))
             newmail.Body = """
 Dear Colleague,
 
