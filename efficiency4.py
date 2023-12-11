@@ -289,6 +289,7 @@ class imageStore:
     serial_number = 0
     image_store = {}
     mag = 4
+    across = 2
 
     def generate_imagename( self, person ):
         # general a unique name and add it to a person-keyed dict
@@ -306,43 +307,6 @@ class imageStore:
         else:
             type(self).image_store[person] = [image_name]
             
-        return image_name
-
-    def xgenerate_collage( self, person ):
-        # Combine this person's iamges into one, and return that name
-
-        image_name = None
-        
-        if person in type(self).image_store:
-
-            image_list = type(self).image_store[person]
-
-            if len(image_list) > 0:
-
-                # get (and update) a unique number
-                serial_number = type(self).serial_number
-                type(self).serial_number = serial_number + 1
-
-                image_name = f"Feedback_{serial_number}.png"
-
-                images = [Image.open(i) for i in image_list ]
-                widths, heights = zip(*(i.size for i in images))
-
-                new_height = sum(heights)
-                new_width = max(widths)
-
-                new_im = Image.new('RGB', (new_width, new_height))
-
-                y_offset = 0
-                for im in images:
-                  new_im.paste(im, (0,y_offset))
-                  y_offset += im.size[1]
-
-                if type(self).mag != 1:
-                    new_im = new_im.resize( (new_width*type(self).mag, new_height*type(self).mag), Image.BICUBIC)
-
-                new_im.save(image_name)
-
         return image_name
 
     def generate_collage( self, person ):
@@ -369,21 +333,26 @@ class imageStore:
                 max_width = max(widths)
                 num_images = len(image_list)
 
-                new_height = max_height * ( (num_images+1)//2 )
-                new_width = max_width * 2
+                new_height = max_height * ( (num_images+type(self).across-1)//type(self).across )
+                new_width = max_width * type(self).across
 
                 new_im = Image.new('RGB', (new_width, new_height))
 
                 x_offset = 0
                 y_offset = 0
+                x_num = 0
 
                 for im in images:
                     new_im.paste(im, (x_offset,y_offset))
-                    if x_offset == 0:
-                        x_offset += max_width
-                    else:
-                        x_offset = 0
+                    x_offset += max_width
+                    x_num += 1
+                    if x_num == type(self).across:
                         y_offset += max_height
+                        x_num = 0
+                        x_offset = 0
+                    else:
+                        x_offset += max_width
+                        x_num += 1
 
                 if type(self).mag != 1:
                     new_im = new_im.resize( (new_width*type(self).mag, new_height*type(self).mag), Image.BICUBIC)
