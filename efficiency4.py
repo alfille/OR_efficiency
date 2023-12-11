@@ -184,7 +184,7 @@ class dataSetType(dataSet):
         else:
             df = self.make_df(person) # dataframe
             if self.majority:
-                serve = self.full_dataframe.loc[ df[self.rolegroup] == person, type(self).filter_column].iloc[0]
+                serve = df.loc[ df[self.rolegroup] == person, type(self).filter_column].iloc[0]
             else:
                 serve = "All"
             cases = df.loc[ df[self.rolegroup] == person, type(self).casecount_column].iloc[0]
