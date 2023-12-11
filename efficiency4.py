@@ -32,26 +32,23 @@ import pandas as pd
 class dataSet:
     namelist = []
     file_prompt = "CSV file"
-    iStore = None
 
     def __init__(self,filename=""):
         # read in data csv after removing "%"
         self.full_dataframe = pd.read_csv(io.StringIO(self.dataslurp(filename).replace("%","")))
         self.add_to_namelist()
 
-        # initialize ImageStore
-        if type(self).iStore == None:
-            type(self).iStore = imageStore()
+        self.iStore = imageStore()
 
     def add_to_namelist( self ):
         # add in to (unique) list of users
-        type(self).namelist = list( dict.fromkeys(
-            type(self).namelist + list(self.full_dataframe[self.full_dataframe.columns[0]])
+        dataSet.namelist = list( dict.fromkeys(
+            dataSet.namelist + list(self.full_dataframe[self.full_dataframe.columns[0]])
             ))
 
     def namedict(self):
         nd = {}
-        for n in type(self).namelist:
+        for n in dataSet.namelist:
             nd[n] = ""
         return nd
         
@@ -93,8 +90,6 @@ class dataSetType(dataSet):
     service_column_raw = "SERVICE"
     service_column     = "Service"
     filter_column = "Majority Service"
-
-    namelist = []
     
     def __init__(self,data):
         super().__init__(data)
@@ -149,7 +144,7 @@ class dataSetType(dataSet):
 
     def make_df(self,person,services=None):
         # Make a dataframe of person's data vs everyone's data for comparison
-        non_person = type(self).namelist[:] # needs to be a copy
+        non_person = dataSet.namelist[:] # needs to be a copy
         non_person.remove(person) # comparators
 
         if self.service_included:
@@ -164,7 +159,7 @@ class dataSetType(dataSet):
             return self.sort(df)
 
     def plot_output( self, person ):
-        name = type(self).iStore.generate_imagename(person)
+        name = self.iStore.generate_imagename(person)
         plt.savefig(name)
         #plt.show()
         plt.close()
@@ -178,7 +173,6 @@ class dataSetType(dataSet):
         sns.despine(offset=10, trim=True)
 
         if self.service_included:
-            print("Service")
             services = self.get_services(person)
             for df in self.make_df(person,services):
                 serve = df.loc[ df[self.rolegroup] == person, type(self).service_column].iloc[0]
@@ -188,7 +182,6 @@ class dataSetType(dataSet):
                 plt.title(f"{type(self).target_column} for {(person.split(','))[0]}\n{serve} cases: {cases}")
                 self.plot_output( person )
         else:
-            print("Non-service")
             df = self.make_df(person) # dataframe
             if self.majority:
                 serve = self.full_dataframe.loc[ df[self.rolegroup] == person, type(self).filter_column].iloc[0]
@@ -226,6 +219,7 @@ class eMail(dataSetType):
         # outlook handle
         if email_enabled:
             self.outlook=win32com.client.Dispatch('Outlook.Application')
+        self.iStore = imageStore()
 
     def emailslurp(self, json_name=""):
         # Possibly request file (if not specified on command line) and read it in
@@ -253,13 +247,15 @@ class eMail(dataSetType):
         return data
 
     def email_all(self):
-        for person in type(self).namelist:
+        for person in dataSet.namelist:
+            print(f"Emaiing {person}")
             self.email_person( person )
 
     def email_person( self, person ):
         print(self.fulldict[person])
         if self.fulldict[person] == "":
             print(f"{person} has no email address")
+            print(f"Collage: {self.iStore.generate_collage(person)}")
         else:
             self.make_letter(person)
 
@@ -269,7 +265,7 @@ class eMail(dataSetType):
             newmail = self.outlook.CreateItem(letter)
             newmail.Subject = "Personalized OR Efficiency Feedback"
             newmail.To = self.fulldict[person]
-            fil = type(self).iStore.generate_collage(person)
+            fil = self.iStore.generate_collage(person)
             if fil != None:
                 newmail.Attachments.Add(fil)
             newmail.Body = """
