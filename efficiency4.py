@@ -13,7 +13,7 @@ import argparse
 import io
 import seaborn as sns
 import json
-from os.path import exists as file_exists
+import os
 
 from PIL import Image
 
@@ -267,6 +267,8 @@ class eMail(dataSetType):
             newmail.To = self.fulldict[person]
             fil = self.iStore.generate_collage(person)
             if fil != None:
+                print(os.getcwd())
+                print(fil)
                 newmail.Attachments.Add(fil)
             newmail.Body = """
 Dear Colleague,
