@@ -288,6 +288,7 @@ class imageStore:
     # Collect images and combine for each person
     serial_number = 0
     image_store = {}
+    mag = 4
 
     def generate_imagename( self, person ):
         # general a unique name and add it to a person-keyed dict
@@ -336,6 +337,9 @@ class imageStore:
                 for im in images:
                   new_im.paste(im, (0,y_offset))
                   y_offset += im.size[1]
+
+                if type(self).mag != 1:
+                new_im = new_im.resize( (new_width*type(self).mag, new_height*type(self).mag), Image.ANTIALIAS)
 
                 new_im.save(image_name)
 
