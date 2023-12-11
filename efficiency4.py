@@ -166,7 +166,7 @@ class dataSetType(dataSet):
     def post_plot( self, person ):
         name = self.iStore.generate_imagename(person)
         plt.savefig(name)
-        plt.show()
+        #plt.show()
         plt.close()
 
     def single_plot(self, person):
