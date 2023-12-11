@@ -158,7 +158,13 @@ class dataSetType(dataSet):
             df = self.full_dataframe.replace( non_person,f"Other {self.rolegroup}",inplace=False)
             return self.sort(df)
 
-    def plot_output( self, person ):
+    def pre_plot(self):
+        sns.set_style("whitegrid")
+        sns.set_context("paper")
+        sns.despine(offset=10, trim=True)
+        plt.figure(figsize=(15,8))
+
+    def post_plot( self, person ):
         name = self.iStore.generate_imagename(person)
         plt.savefig(name)
         #plt.show()
@@ -167,20 +173,17 @@ class dataSetType(dataSet):
     def single_plot(self, person):
         # plot this person's data
         print(f"{person} Processing: {type(self).__name__}")
-        #print(df)
-        sns.set_style("whitegrid")
-        sns.set_context("paper")
-        sns.despine(offset=10, trim=True)
 
         if self.service_included:
             services = self.get_services(person)
             for df in self.make_df(person,services):
                 serve = df.loc[ df[self.rolegroup] == person, type(self).service_column].iloc[0]
                 cases = df.loc[ df[self.rolegroup] == person, type(self).casecount_column].iloc[0]
+                self.pre_plot()
                 ax0 = sns.barplot( data=df, x=df.index, y=type(self).target_column, hue=self.rolegroup)
                 ax0.set(xlabel=f"{serve} members",xticklabels=[])
                 plt.title(f"{type(self).target_column} for {(person.split(','))[0]}\n{serve} cases: {cases}")
-                self.plot_output( person )
+                self.post_plot( person )
         else:
             df = self.make_df(person) # dataframe
             if self.majority:
@@ -188,10 +191,11 @@ class dataSetType(dataSet):
             else:
                 serve = "All"
             cases = df.loc[ df[self.rolegroup] == person, type(self).casecount_column].iloc[0]
+            self.pre_plot()
             ax0 = sns.barplot( data=df, x=df.index, y=type(self).target_column, hue=self.rolegroup)
             plt.title(f"{type(self).target_column} for {(person.split(','))[0]}\n{self.cases(person)} cases")
             ax0.set(xlabel=f"{serve} members",xticklabels=[])
-            self.plot_output( person )
+            self.post_plot( person )
 
     def plot(self):
         # make everyone's plot
