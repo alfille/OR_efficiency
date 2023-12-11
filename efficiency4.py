@@ -339,7 +339,7 @@ class imageStore:
                   y_offset += im.size[1]
 
                 if type(self).mag != 1:
-                    new_im = new_im.resize( (new_width*type(self).mag, new_height*type(self).mag), Image.ANTIALIAS)
+                    new_im = new_im.resize( (new_width*type(self).mag, new_height*type(self).mag), Image.BICUBIC)
 
                 new_im.save(image_name)
 
