@@ -172,16 +172,19 @@ class dataSetType(dataSet):
 
         if self.service_included:
             df = self.full_dataframe.replace( non_person,f"Other {self.rolegroup}",inplace=False)
-            df = pd.concat( [df,self.goal_row( services )], ignore_index = True )
+            if type(self).goal != None:
+                df = pd.concat( [df,self.goal_row( services )], ignore_index = True )
             return [ self.sort(df.loc[ df[type(self).service_column] == s ]) for s in services ]
         elif self.majority:
             comparable_group = self.full_dataframe.loc[self.select_person(person),type(self).filter_column].iloc[0]
             df = self.full_dataframe.replace( non_person,f"Other {comparable_group}",inplace=False)
-            df = pd.concat( [df,self.goal_row( comparable_group )], ignore_index = True )
+            if type(self).goal != None:
+                df = pd.concat( [df,self.goal_row( comparable_group )], ignore_index = True )
             return self.sort(df.loc[ df[type(self).filter_column]==comparable_group ])
         else:
             df = self.full_dataframe.replace( non_person,f"Other {self.rolegroup}",inplace=False)
-            df = pd.concat([df, self.goal_row( None )], ignore_index = True )
+            if type(self).goal != None:
+                df = pd.concat([df, self.goal_row( None )], ignore_index = True )
             return self.sort(df)
 
     def pre_plot(self):
