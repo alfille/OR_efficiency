@@ -128,7 +128,7 @@ class dataSetType(dataSet):
 
     def sort( self, df ):
         return df.sort_values(
-                by=[ type(self).target_column ],
+                by=[ type(self).target_column, self.rolegroup ],
                 inplace=False,
                 ignore_index=True,
                 )
@@ -144,14 +144,7 @@ class dataSetType(dataSet):
         return self.full_dataframe.loc[self.select_person(person),type(self).casecount_column].iloc[0]
 
     def goal_row( self, service_or_majority=None ):
-        if self.service_included:
-            return pd.DataFrame( data={
-                type(self).service_column:   [s for s in service_or_majority],
-                type(self).target_column:    [type(self).goal for s in service_or_majority],
-                type(self).casecount_column: [0  for s in service_or_majority],
-                self.rolegroup:              ["Goal"  for s in service_or_majority],
-                })
-        if self.majority:
+        if service_or_majority != None:
             return pd.DataFrame( data={
                 type(self).service_column:   service_or_majority,
                 type(self).target_column:    type(self).goal,
@@ -165,37 +158,65 @@ class dataSetType(dataSet):
                 self.rolegroup:              "Goal",
                 })
 
-    def make_df(self,person,services=None):
-        # Make a dataframe of person's data vs everyone's data for comparison
+    def anonymize_for( self, other, person ):
         non_person = dataSet.namelist[:] # needs to be a copy
         non_person.remove(person) # comparators
+        return self.full_dataframe.replace( non_person,other,inplace=False)
+
+    def make_df(self,person,services=None):
+        # Make a dataframe of person's data vs everyone's data for comparison
 
         if self.service_included:
-            df = self.full_dataframe.replace( non_person,f"Other {self.rolegroup}",inplace=False)
+            other = f"Other {self.rolegroup}"
+            dfs = []
             if type(self).goal != None:
-                df = pd.concat( [df,self.goal_row( services )], ignore_index = True )
-            return [ self.sort(df.loc[ df[type(self).service_column] == s ]) for s in services ]
+                hues = [person, "Goal", other]
+                pal = {person:"blue","Goal":"red",other:"grey"}
+            else:
+                hues = [person, other]
+                pal = {person:"blue",other:"grey"}                    
+            for s in services:
+                df = self.anonymize_for( other, person )
+                if type(self).goal != None:
+                    df = pd.concat( [df,self.goal_row( services )], ignore_index = True )
+                dfs.append( self.sort(df.loc[ df[type(self).service_column] == s ]) )
+            return hues, pal, dfs
         elif self.majority:
             comparable_group = self.full_dataframe.loc[self.select_person(person),type(self).filter_column].iloc[0]
-            df = self.full_dataframe.replace( non_person,f"Other {comparable_group}",inplace=False)
+            other = f"Other {comparable_group}"
+            if type(self).goal != None:
+                hues = [person, "Goal", other]
+                pal = {person:"blue","Goal":"red",other:"grey"}
+            else:
+                hues = [person, other]
+                pal = {person:"blue",other:"grey"}                    
+            df = self.anonymize_for( other, person )
             if type(self).goal != None:
                 df = pd.concat( [df,self.goal_row( comparable_group )], ignore_index = True )
-            return self.sort(df.loc[ df[type(self).filter_column]==comparable_group ])
+            return hues, pal, self.sort(df.loc[ df[type(self).filter_column]==comparable_group ])
         else:
-            df = self.full_dataframe.replace( non_person,f"Other {self.rolegroup}",inplace=False)
+            other = f"Other {self.rolegroup}"
+            if type(self).goal != None:
+                hues = [person, "Goal", other]
+                pal = {person:"blue","Goal":"red",other:"grey"}
+            else:
+                hues = [person, other]
+                pal = {person:"blue",other:"grey"}                    
+            df = self.anonymize_for( other, person )
             if type(self).goal != None:
                 df = pd.concat([df, self.goal_row( None )], ignore_index = True )
-            return self.sort(df)
+            return hues, pal, self.sort(df)
 
     def pre_plot(self):
         sns.set_context("notebook")
         sns.set_style("whitegrid")
         sns.despine(offset=10, trim=True)
+        sns.color_palette( palette=["red","green","grey"] )
         
     def post_plot( self, person ):
         name = self.iStore.generate_imagename(person)
         plt.savefig(name)
-        #plt.show()
+        plt.show()
         plt.close()
 
     def single_plot(self, person):
@@ -204,23 +225,38 @@ class dataSetType(dataSet):
 
         if self.service_included:
             services = self.get_services(person)
-            for df in self.make_df(person,services):
+            hues, pal, dfs = self.make_df(person,services)
+            for df in dfs:
                 serve = df.loc[ df[self.rolegroup] == person, type(self).service_column].iloc[0]
                 cases = df.loc[ df[self.rolegroup] == person, type(self).casecount_column].iloc[0]
                 self.pre_plot()
-                ax0 = sns.barplot( data=df, x=df.index, y=type(self).target_column, hue=self.rolegroup)
+                ax0 = sns.barplot(
+                    data=df,
+                    x=df.index,
+                    y=type(self).target_column,
+                    hue=self.rolegroup,
+                    hue_order = hues,
+                    palette = pal,
+                    )
                 ax0.set(xlabel=f"{serve} members",xticklabels=[])
                 plt.title(f"{type(self).target_column} for {(person.split(','))[0]}\n{serve} cases: {cases}")
                 self.post_plot( person )
         else:
-            df = self.make_df(person) # dataframe
+            hues, pal, df = self.make_df(person) # dataframe
             if self.majority:
                 serve = df.loc[ df[self.rolegroup] == person, type(self).filter_column].iloc[0]
             else:
                 serve = "All"
             cases = df.loc[ df[self.rolegroup] == person, type(self).casecount_column].iloc[0]
             self.pre_plot()
-            ax0 = sns.barplot( data=df, x=df.index, y=type(self).target_column, hue=self.rolegroup)
+            ax0 = sns.barplot(
+                data=df,
+                x=df.index,
+                y=type(self).target_column,
+                hue=self.rolegroup,
+                hue_order = hues,
+                palette = pal,
+                )
             plt.title(f"{type(self).target_column} for {(person.split(','))[0]}\n{self.cases(person)} cases")
             ax0.set(xlabel=f"{serve} members",xticklabels=[])
             self.post_plot( person )
