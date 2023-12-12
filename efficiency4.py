@@ -90,6 +90,7 @@ class dataSetType(dataSet):
     service_column_raw = "SERVICE"
     service_column     = "Service"
     filter_column = "Majority Service"
+    goal = None
     
     def __init__(self,data):
         super().__init__(data)
@@ -106,7 +107,7 @@ class dataSetType(dataSet):
 
         # 3 types of CSV formats currently known:
         # 1. Service breakdown
-        #       typically 3 majot services
+        #       typically 3 major services
         #       has "Service" column
         # 2. Majority Service
         #       Gives data for major service
@@ -136,11 +137,33 @@ class dataSetType(dataSet):
         return self.full_dataframe[self.rolegroup] == person
         
     def get_services( self, person ):
-        return self.full_dataframe.loc[self.select_person(person),type(self).service_column]
+        return list( self.full_dataframe.loc[self.select_person(person), type(self).service_column] )
         
     def cases(self,person):
         # Number of cases included
         return self.full_dataframe.loc[self.select_person(person),type(self).casecount_column].iloc[0]
+
+    def goal_row( self, service_or_majority=None ):
+        if self.service_included:
+            return pd.DataFrame( data={
+                type(self).service_column:   [s for s in service_or_majority],
+                type(self).target_column:    [type(self).goal for s in service_or_majority],
+                type(self).casecount_column: [0  for s in service_or_majority],
+                self.rolegroup:              ["Goal"  for s in service_or_majority],
+                })
+        if self.majority:
+            return pd.DataFrame( data={
+                type(self).service_column:   service_or_majority,
+                type(self).target_column:    type(self).goal,
+                type(self).casecount_column: 0,
+                self.rolegroup:              "Goal",
+                })
+        else:
+            return pd.DataFrame( data={
+                type(self).target_column:    type(self).goal,
+                type(self).casecount_column: 0,
+                self.rolegroup:              "Goal",
+                })
 
     def make_df(self,person,services=None):
         # Make a dataframe of person's data vs everyone's data for comparison
@@ -149,13 +172,16 @@ class dataSetType(dataSet):
 
         if self.service_included:
             df = self.full_dataframe.replace( non_person,f"Other {self.rolegroup}",inplace=False)
-            return [ self.sort(df.loc[ df[type(self).service_column] == s ]) for s in list(services) ]
+            df = pd.concat( [df,self.goal_row( services )], ignore_index = True )
+            return [ self.sort(df.loc[ df[type(self).service_column] == s ]) for s in services ]
         elif self.majority:
-            conparable_group = self.full_dataframe.loc[self.select_person(person),type(self).filter_column].iloc[0]
-            df = self.full_dataframe.replace( non_person,f"Other {conparable_group}",inplace=False)
-            return self.sort(df.loc[ df[type(self).filter_column]==conparable_group ])
+            comparable_group = self.full_dataframe.loc[self.select_person(person),type(self).filter_column].iloc[0]
+            df = self.full_dataframe.replace( non_person,f"Other {comparable_group}",inplace=False)
+            df = pd.concat( [df,self.goal_row( comparable_group )], ignore_index = True )
+            return self.sort(df.loc[ df[type(self).filter_column]==comparable_group ])
         else:
             df = self.full_dataframe.replace( non_person,f"Other {self.rolegroup}",inplace=False)
+            df = pd.concat([df, self.goal_row( None )], ignore_index = True )
             return self.sort(df)
 
     def pre_plot(self):
@@ -205,11 +231,13 @@ class onTime(dataSetType):
     target_column_raw = "OnTime"
     target_column     = "On Time %"
     file_prompt       = "On Time %"
+    goal = 80
 
 class turnOver(dataSetType):
     target_column_raw = "Avg. ROOM_OUT_TO_IN_ADJ"
     target_column     = "Turnover minutes"
     file_prompt       = "Turnover minutes"
+    goal = 45
 
 class eMail(dataSetType):
     file_prompt="Email addresses in JSON format"
