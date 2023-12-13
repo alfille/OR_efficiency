@@ -147,18 +147,18 @@ class dataSetType(dataSet):
 
     def goal_row( self, service_or_majority=None ):
         if service_or_majority != None:
-            return pd.DataFrame( data={
+            return pd.DataFrame( data=[{
                 type(self).service_column:   service_or_majority,
                 type(self).target_column:    type(self).goal,
                 type(self).casecount_column: 0,
                 self.rolegroup:              "Goal",
-                })
+                }])
         else:
-            return pd.DataFrame( data={
+            return pd.DataFrame( data=[{
                 type(self).target_column:    type(self).goal,
                 type(self).casecount_column: 0,
                 self.rolegroup:              "Goal",
-                })
+                }])
 
     def anonymize_for( self, other, person ):
         non_person = dataSet.namelist[:] # needs to be a copy
@@ -406,7 +406,7 @@ class imageStore:
                 new_height = max_height * ( (num_images+type(self).across-1)//type(self).across )
                 new_width = max_width * type(self).across
 
-                new_im = Image.new('RGB', (new_width, new_height))
+                new_im = Image.new('RGB', (new_width, new_height), color="white")
 
                 x_offset = 0
                 y_offset = 0
@@ -416,6 +416,7 @@ class imageStore:
                     new_im.paste(im, (x_offset,y_offset))
                     x_offset += max_width
                     x_num += 1
+                    print("Pic",x_num,x_offset,y_offset)
                     if x_num == type(self).across:
                         y_offset += max_height
                         x_num = 0
