@@ -347,6 +347,14 @@ As part of the OR Efficiency Project, we are sending you data on the cases you w
 The data reflects the joint efforts of your team, but helps you compare the way your team performs
 compared to others.
 
+Included are graphs of your data. An explanation:
+    You are the blue bar in each graph
+    The operational goal for the OR is the red bar
+    All your colleagues are the grey bars (without names)
+    
+    For On Time Start, higher is better
+    For Turnover Time, lower is better
+
 We hope you will share any problems or solutions you discover with us to help the MGH ORs meet the
 goals.
 
