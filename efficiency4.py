@@ -38,8 +38,6 @@ class dataSet:
         self.full_dataframe = pd.read_csv(io.StringIO(self.dataslurp(filename).replace("%","")))
         self.add_to_namelist()
 
-        self.iStore = imageStore()
-
     def add_to_namelist( self ):
         # add in to (unique) list of users
         dataSet.namelist = list( dict.fromkeys(
@@ -106,6 +104,8 @@ class dataSetType(dataSet):
 
         # Person Type (ANESTHESIOLOGIST, CRNA, ...)
         self.rolegroup = self.full_dataframe.columns[0]
+
+        self.iStore = imageStore()
 
         # 3 types of CSV formats currently known:
         # 1. Service breakdown
@@ -362,6 +362,27 @@ Your PeriOp Team
 """
             newmail.Send()
 
+class eMailReport(eMail):
+
+    def __init__(self, email_file):
+        # just from file
+        self.jsondict = self.emailslurp(email_file)
+        self.csvdict = self.namedict()
+        self.matched()
+        self.unmatched()
+        
+    def matched( self ):
+        print("\n\nMatching names:")
+        for c in self.csvdict:
+            if c in self.jsondict:
+                print(f"\t{c}")
+
+    def unmatched( self ):
+        print("\n\nUnmatching names:")
+        for c in self.csvdict:
+            if c not in self.jsondict:
+                print(f"\t{c}")
+    
 class imageStore:
     # Collect images and combine for each person
     serial_number = 0
@@ -482,7 +503,14 @@ def main( sysargs ):
         action='store_true',
         dest="display_on_screen",
         help="Display graphs, one at a time"
-        )    
+        )
+    parser.add_argument('-r','--report',
+        required=False,
+        action='store_true',
+        dest="list_match",
+        help="Report on email vs csv files match"
+        )
+        
     args=parser.parse_args()
     #print(sysargs,args)
 
@@ -492,6 +520,11 @@ def main( sysargs ):
     if args.show_names:
         nam = dataSet(args.start if args.start != "" else args.turnover )
         nam.names()
+        sys.exit(0) ## normal exit
+
+    if args.list_match:
+        nam = dataSet(args.start if args.start != "" else args.turnover )
+        emr = eMailReport( args.email )
         sys.exit(0) ## normal exit
 
     #Start Times
