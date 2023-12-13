@@ -413,7 +413,7 @@ class imageStore:
                 x_num = 0
 
                 for im in images:
-                    print("Pic",x_num,x_offset,y_offset)
+                    #print("Pic",x_num,x_offset,y_offset)
                     new_im.paste(im, (x_offset,y_offset))
                     x_num += 1
                     if x_num == type(self).across:
