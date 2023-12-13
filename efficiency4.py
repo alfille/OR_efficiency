@@ -147,18 +147,18 @@ class dataSetType(dataSet):
 
     def goal_row( self, service_or_majority=None ):
         if service_or_majority != None:
-            return pd.DataFrame( data=[{
-                type(self).service_column:   service_or_majority,
-                type(self).target_column:    type(self).goal,
-                type(self).casecount_column: 0,
-                self.rolegroup:              "Goal",
-                }])
+            return pd.DataFrame( data={
+                type(self).service_column:   [service_or_majority],
+                type(self).target_column:    [type(self).goal],
+                type(self).casecount_column: [0],
+                self.rolegroup:              ["Goal"],
+                })
         else:
-            return pd.DataFrame( data=[{
-                type(self).target_column:    type(self).goal,
-                type(self).casecount_column: 0,
-                self.rolegroup:              "Goal",
-                }])
+            return pd.DataFrame( data={
+                type(self).target_column:    [type(self).goal],
+                type(self).casecount_column: [0],
+                self.rolegroup:              ["Goal"],
+                })
 
     def anonymize_for( self, other, person ):
         non_person = dataSet.namelist[:] # needs to be a copy
@@ -180,7 +180,7 @@ class dataSetType(dataSet):
             for s in services:
                 df = self.anonymize_for( other, person )
                 if type(self).goal != None:
-                    df = pd.concat( [df,self.goal_row( services )], ignore_index = True )
+                    df = pd.concat( [df,self.goal_row( s )], ignore_index = True )
                 dfs.append( self.sort(df.loc[ df[type(self).service_column] == s ]) )
             return hues, pal, dfs
         elif self.majority:
@@ -413,17 +413,15 @@ class imageStore:
                 x_num = 0
 
                 for im in images:
-                    new_im.paste(im, (x_offset,y_offset))
-                    x_offset += max_width
-                    x_num += 1
                     print("Pic",x_num,x_offset,y_offset)
+                    new_im.paste(im, (x_offset,y_offset))
+                    x_num += 1
                     if x_num == type(self).across:
                         y_offset += max_height
                         x_num = 0
                         x_offset = 0
                     else:
                         x_offset += max_width
-                        x_num += 1
 
                 if type(self).mag != 1:
                     new_im = new_im.resize( (new_width*type(self).mag, new_height*type(self).mag), Image.BICUBIC)
