@@ -91,6 +91,8 @@ class dataSetType(dataSet):
     service_column     = "Service"
     filter_column = "Majority Service"
     goal = None
+
+    display_on_screen = False
     
     def __init__(self,data):
         super().__init__(data)
@@ -216,7 +218,8 @@ class dataSetType(dataSet):
     def post_plot( self, person ):
         name = self.iStore.generate_imagename(person)
         plt.savefig(name)
-        plt.show()
+        if type(self).display_on_screen:
+            plt.show()
         plt.close()
 
     def single_plot(self, person):
@@ -467,8 +470,17 @@ def main( sysargs ):
         dest="show_names",
         help="Just show people's names"
         )    
+    parser.add_argument('-d','--display',
+        required=False,
+        action='store_true',
+        dest="display_on_screen",
+        help="Display graphs, one at a time"
+        )    
     args=parser.parse_args()
     #print(sysargs,args)
+
+    if args.display_on_screen:
+        dataSetType.display_on_screen = True
 
     if args.show_names:
         nam = dataSet(args.start if args.start != "" else args.turnover )
