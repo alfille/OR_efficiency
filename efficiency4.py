@@ -370,7 +370,8 @@ class eMailReport(eMail):
         self.csvdict = self.namedict()
         self.matched()
         self.unmatched()
-        
+        self.possible()
+            
     def matched( self ):
         print("\n\nMatching names:")
         for c in self.csvdict:
@@ -382,7 +383,16 @@ class eMailReport(eMail):
         for c in self.csvdict:
             if c not in self.jsondict:
                 print(f"\t{c}")
-    
+
+    def possible( self ):
+        print("\n\nPossible matches:")
+        for c in self.csvdict:
+            if c not in self.jsondict:
+                c1 = c.split(",")[0]
+                for j,v in self.jsondict.items():
+                    if c1 == j.split(",")[0]:
+                        print(f"{c}->{j} / {v}")
+            
 class imageStore:
     # Collect images and combine for each person
     serial_number = 0
