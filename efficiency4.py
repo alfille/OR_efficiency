@@ -286,7 +286,7 @@ class eMail(dataSetType):
     
     def __init__(self,email_file):
         # just from file
-        self.filedict = self.emailslurp(email_file)
+        self.json_file, self.filedict = self.emailslurp(email_file)
         # add in all names fron datasets as secondary entries
         self.fulldict = self.namedict() | self.filedict
         # outlook handle
@@ -315,9 +315,9 @@ class eMail(dataSetType):
             with open(json_name,"r") as j:
                 data = json.load(j)
         except:
-            print(f"{type(self).file_prompt} Unable to read {json_name}\n") 
+            print(f"{type(self).file_prompt} Unable to read {json_name}\n")
             data = json.loads("{}")
-        return data
+        return json_name, data
 
     def email_all(self):
         for person in dataSet.namelist:
@@ -363,11 +363,11 @@ Your PeriOp Team
             newmail.Send()
 
 class eMailReport(eMail):
-
     def __init__(self, email_file):
         # just from file
-        self.jsondict = self.emailslurp(email_file)
+        self.json_file, self.jsondict = self.emailslurp(email_file)
         self.csvdict = self.namedict()
+        print(json.dumps(self.jsondict,indent=4))
         self.matched()
         self.unmatched()
         self.possible()
@@ -388,11 +388,73 @@ class eMailReport(eMail):
         print("\n\nPossible matches:")
         for c in self.csvdict:
             if c not in self.jsondict:
+                showc = True
                 c1 = c.split(",")[0]
                 for j,v in self.jsondict.items():
                     if c1 == j.split(",")[0]:
-                        print(f"{c}->{j} / {v}")
-            
+                        if showc:
+                            print(f"{c}")
+                            showc = False
+                        print(f"\t -> \t{j}\t/\t{v}")
+
+class eMailEdit( eMailReport ) :
+    def __init__(self, email_file):
+        # just from file
+        self.json_file, self.jsondict = self.emailslurp(email_file)
+        self.csvdict = self.namedict()
+        self.update_names()
+
+    def save_json( self ):
+        try:
+            temp_name = f"{self.json_file}.TEMP"
+            with open( temp_name, "w" ) as temp_file:
+                json.dump( self.jsondict, temp_file, indent=4 )
+            os.replace( temp_name, self.json_file )
+        except:
+            print(sys.exec_info())
+            print(f"Cannot write out updated JSON file {self.json_file}")
+            sys.exit(1)
+
+    def update_names( self ):
+        # Update jsondict with keys from csvdict
+        print("\n\nTrial matches:")
+        # List of all names (keys) found in csvdict
+        csv_keys = list(self.csvdict.keys())
+
+        for c_name in csv_keys: # loop through the names
+            if c_name not in self.jsondict:
+                c_last = c_name.split(",")[0]
+                # this name needs a jsondict match
+                j_names = ["Skip"]
+                j_full={"Skip":"Don't change"}
+                for j,v in self.jsondict.items():
+                    # find last name matches
+                    j_last = j.split(",")[0]
+                    if c_last == j_last:
+                        j_names.append(j)
+                        j_full[j]=v
+                if len(j_names) > 1:
+                    # Some choices
+                    print(f"\n{c_name} choices:")
+                    for idx, j in enumerate(j_names):
+                        print(f"\t{idx}\t{j}\t<{j_full[j]}>")
+                    try:
+                        n = int(input("Your choice: "))
+                        if n < 1:
+                            # skip
+                            pass
+                        elif n >= len(j_names):
+                            # bad number
+                            pass
+                        else:
+                            # make the switch by adding a new record and deleting the old
+                            chosen_record = j_names[n]
+                            self.jsondict[c_name] = j_full[chosen_record]
+                            del self.jsondict[chosen_record]
+                            self.save_json()
+                    except ValueError:
+                        pass
+                
 class imageStore:
     # Collect images and combine for each person
     serial_number = 0
@@ -520,6 +582,12 @@ def main( sysargs ):
         dest="list_match",
         help="Report on email vs csv files match"
         )
+    parser.add_argument('-u','--update',
+        required=False,
+        action='store_true',
+        dest="update_email",
+        help="Replace names in email list with EPIC names"
+        )
         
     args=parser.parse_args()
     #print(sysargs,args)
@@ -535,6 +603,11 @@ def main( sysargs ):
     if args.list_match:
         nam = dataSet(args.start if args.start != "" else args.turnover )
         emr = eMailReport( args.email )
+        sys.exit(0) ## normal exit
+
+    if args.update_email:
+        nam = dataSet(args.start if args.start != "" else args.turnover )
+        emr = eMailEdit( args.email )
         sys.exit(0) ## normal exit
 
     #Start Times
