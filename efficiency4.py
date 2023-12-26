@@ -41,7 +41,7 @@ class dataSet:
     def add_to_namelist( self ):
         # add in to (unique) list of users
         dataSet.namelist = list( dict.fromkeys(
-            dataSet.namelist + list(self.full_dataframe[self.full_dataframe.columns[0]])
+            dataSet.namelist + list(self.full_dataframe[self.full_dataframe.columns.to_list()[0]])
             ))
 
     def namedict(self):
@@ -104,7 +104,7 @@ class dataSetType(dataSet):
             }, inplace=True)
 
         # Person Type (ANESTHESIOLOGIST, CRNA, ...)
-        self.rolegroup = self.full_dataframe.columns[0]
+        self.rolegroup = self.full_dataframe.columns.to_list()[0]
 
         self.iStore = imageStore()
 
@@ -121,10 +121,10 @@ class dataSetType(dataSet):
         self.service_included = False
         self.majority = False
 
-        if type(self).service_column in self.full_dataframe.columns:
+        if type(self).service_column in self.full_dataframe.columns.to_list():
             # Includes Serivce breakdowns
             self.service_included = True
-        elif type(self).filter_column  in self.full_dataframe.columns:
+        elif type(self).filter_column  in self.full_dataframe.columns.to_list():
             # Includes Majority Service
             self.majority = True
         print(self.full_dataframe)
