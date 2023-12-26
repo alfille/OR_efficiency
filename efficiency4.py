@@ -398,7 +398,7 @@ Your PeriOp Team
                 print(f"\tSending email to {person}")
             else:
                 newmail.Save()
-                    print(f"\tSaving draft email to {person}")
+                print(f"\tSaving draft email to {person}")
 
 class eMailReport(eMail):
     def __init__(self, email_file):
