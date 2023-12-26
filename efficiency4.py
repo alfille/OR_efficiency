@@ -313,13 +313,16 @@ class eMail(dataSetType):
     
     def __init__(self,email_file,action):
         self.action = action
-        # just from file
-        self.json_file, self.filedict = self.emailslurp(email_file)
-        # add in all names fron datasets as secondary entries
-        self.fulldict = self.namedict() | self.filedict
-        # outlook handle
-        if email_enabled:
-            self.outlook=win32com.client.Dispatch('Outlook.Application')
+        if self.action != "File":
+            # just from file
+            self.json_file, self.filedict = self.emailslurp(email_file)
+            # add in all names fron datasets as secondary entries
+            self.fulldict = self.namedict() | self.filedict
+        
+            # outlook handle
+            if email_enabled:
+                self.outlook=win32com.client.Dispatch('Outlook.Application')
+
         self.iStore = imageStore()
 
     def emailslurp(self, json_name=""):
@@ -349,18 +352,17 @@ class eMail(dataSetType):
 
     def email_all(self):
         for person in dataSet.namelist:
-            print(f"Processing {person}")
             self.email_person( person )
 
     def email_person( self, person ):
-        print(self.fulldict[person])
+        print(f"\nProcessing {person}")
         if self.action == "File":
             fil = self.iStore.generate_collage(person)
             per = f"{person}.png" 
             os.replace( fil, per )
-            print(f"\tImage gallery: {per}")            
+            print(f"    Image gallery: {per}")            
         elif self.fulldict[person] == "":
-            print(f"{person} has no email address")
+            print(f"    {person} has no email address")
         else:
             self.make_letter(person)
 
@@ -395,10 +397,10 @@ Your PeriOp Team
 """
             if self.action == "Send":
                 newmail.Send()
-                print(f"\tSending email to {person}")
+                print(f"    Sending email to {person}")
             else:
                 newmail.Save()
-                print(f"\tSaving draft email to {person}")
+                print(f"    Saving draft email to {person}")
 
 class eMailReport(eMail):
     def __init__(self, email_file):
