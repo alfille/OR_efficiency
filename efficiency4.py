@@ -72,11 +72,10 @@ class dataSet:
 
         try: 
             with open(csv_name,"r") as csv:
-                data = csv.read()
+                return csv.read()
         except:
-            print(f"{file_prompt} Unable to read {csv_name}\n") 
-            data = None
-        return data
+            print(f"{type(self).file_prompt} Unable to read {csv_name}\n") 
+            sys.exit(1)
 
 
 
@@ -94,6 +93,8 @@ class dataSetType(dataSet):
     
     def __init__(self,data):
         super().__init__(data)
+
+        self.test_columns()
 
         # Rename some columns
         self.full_dataframe.rename(columns={
@@ -269,6 +270,32 @@ class dataSetType(dataSet):
         for person in list(dict.fromkeys(self.full_dataframe[self.rolegroup])):
             self.single_plot(person)
 
+    def test_a_column( self, raw, pretty ):
+        # return True if error
+        col = self.full_dataframe.columns.to_list()
+        if raw in col:
+            return False
+        else:
+            print( "Fail: CSV file missing needed column" )
+            print( f"\tColumn content: {pretty} \tRequired name: {raw}\n\tActual columns: {', '.join(col)}")
+            return True
+
+    def test_an_optional_column( self, raw, pretty ):
+        col = self.full_dataframe.columns.to_list()
+        if raw not in col:
+            print( "Info: CSV file missing optional column -- make sure it's not just mislabeled" )
+            print( f"\tColumn content: {pretty} \tExpected name: {raw}\n\tActual columns: {', '.join(col)}")
+        
+    def test_columns( self ):
+        file_fail = False
+        file_fail = file_fail or self.test_a_column( type(self).casecount_column_raw, "Case numbers" )
+        file_fail = file_fail or self.test_a_column( type(self).target_column_raw, "Target column" )
+        self.test_an_optional_column( type(self).service_column_raw, "Surgical area" )
+        self.test_an_optional_column( type(self).filter_column, "Service group" )
+        if file_fail:
+            sys.exit(1)
+            
+
 class onTime(dataSetType):
     target_column_raw = "OnTime"
     target_column     = "On Time %"
@@ -284,7 +311,8 @@ class turnOver(dataSetType):
 class eMail(dataSetType):
     file_prompt="Email addresses in JSON format"
     
-    def __init__(self,email_file):
+    def __init__(self,email_file,action):
+        self.action = action
         # just from file
         self.json_file, self.filedict = self.emailslurp(email_file)
         # add in all names fron datasets as secondary entries
@@ -321,12 +349,17 @@ class eMail(dataSetType):
 
     def email_all(self):
         for person in dataSet.namelist:
-            print(f"Emaiing {person}")
+            print(f"Processing {person}")
             self.email_person( person )
 
     def email_person( self, person ):
         print(self.fulldict[person])
-        if self.fulldict[person] == "":
+        if self.action == "File":
+            fil = self.iStore.generate_collage(person)
+            per = f"{person}.png" 
+            os.replace( fil, per )
+            print(f"\tImage gallery: {per}")            
+        elif self.fulldict[person] == "":
             print(f"{person} has no email address")
         else:
             self.make_letter(person)
@@ -360,7 +393,12 @@ goals.
 
 Your PeriOp Team
 """
-            newmail.Send()
+            if self.action == "Send":
+                newmail.Send()
+                print(f"\tSending email to {person}")
+            else:
+                newmail.Save()
+                    print(f"\tSaving draft email to {person}")
 
 class eMailReport(eMail):
     def __init__(self, email_file):
@@ -564,6 +602,14 @@ def main( sysargs ):
         nargs='?',
         help='Email addresses (JSON format)'
         )    
+    parser.add_argument('-a','--action',
+        required=False,
+        default="Send",
+        dest="action",
+        choices=("Send","Save","File"),
+        nargs='?',
+        help='Action to take on each composite graph.'
+        )    
     parser.add_argument('-n','--names',
         required=False,
         action='store_true',
@@ -619,7 +665,7 @@ def main( sysargs ):
     tur.plot()
 
     #email addresses
-    ema = eMail(args.email)
+    ema = eMail(args.email, args.action)
     ema.email_all()
 
 if __name__ == "__main__":
