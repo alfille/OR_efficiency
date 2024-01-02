@@ -170,7 +170,7 @@ class dataSetType(dataSet):
         # Make a dataframe of person's data vs everyone's data for comparison
 
         if self.service_included:
-            other = f"Other {self.rolegroup}"
+            other = f"Other {str(self.rolegroup)}"
             dfs = []
             if type(self).goal != None:
                 hues = [person, "Goal", other]
@@ -185,7 +185,7 @@ class dataSetType(dataSet):
                 dfs.append( self.sort(df.loc[ df[type(self).service_column] == s ]) )
             return hues, pal, dfs
         elif self.majority:
-            comparable_group = self.full_dataframe.loc[self.select_person(person),type(self).filter_column].iloc[0]
+            comparable_group = self.full_dataframe.loc[self.select_person(person),type(self).filter_column].iloc[0].astype(str)
             other = f"Other {comparable_group}"
             if type(self).goal != None:
                 hues = [person, "Goal", other]
@@ -198,7 +198,7 @@ class dataSetType(dataSet):
                 df = pd.concat( [df,self.goal_row( comparable_group )], ignore_index = True )
             return hues, pal, self.sort(df.loc[ df[type(self).filter_column]==comparable_group ])
         else:
-            other = f"Other {self.rolegroup}"
+            other = f"Other {str(self.rolegroup)}"
             if type(self).goal != None:
                 hues = [person, "Goal", other]
                 pal = {person:"blue","Goal":"red",other:"grey"}
