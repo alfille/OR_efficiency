@@ -95,16 +95,25 @@ class dataSetType(dataSet):
         super().__init__(data)
 
         self.test_columns()
+        self.rolegroup_raw = self.full_dataframe.columns.to_list()[0]
+        try:
+            self.rolegroup=self.rolegroup_raw.split('"')[1]
+            print("split")
+        except:
+            self.rolegroup = self.rolegroup_raw
+            print("raw")
+
 
         # Rename some columns
         self.full_dataframe.rename(columns={
             type(self).target_column_raw:    type(self).target_column,
             type(self).casecount_column_raw: type(self).casecount_column ,
             type(self).service_column_raw:   type(self).service_column ,
+            self.rolegroup_raw:              self.rolegroup,
             }, inplace=True)
 
         # Person Type (ANESTHESIOLOGIST, CRNA, ...)
-        self.rolegroup = self.full_dataframe.columns.to_list()[0]
+        print(f"Rolegroup: {self.rolegroup}")
 
         self.iStore = imageStore()
 
