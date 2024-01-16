@@ -399,7 +399,7 @@ Included are graphs of your data. An explanation:
     For On Time Start, higher is better
     For Turnover Time, lower is better
 
-The data covers June 2023 to November 2023. If you have questions about the report, please contact Mike Farrell.
+The data covers June 2023 to November 2023. If you have questions about the report, please contact your department leadership..
 
 We hope you will share any problems or solutions you discover with us to help the MGH ORs meet the
 goals.
