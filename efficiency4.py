@@ -311,7 +311,7 @@ class onTime(dataSetType):
     file_prompt       = "On Time %"
     goal = 80
 
-class turnOver(dataSetType):
+    class turnOver(dataSetType):
     target_column_raw = "Avg. ROOM_OUT_TO_IN_ADJ"
     target_column     = "Turnover minutes"
     file_prompt       = "Turnover minutes"
@@ -387,22 +387,21 @@ class eMail(dataSetType):
             newmail.Body = """
 Dear Colleague,
 
-As part of the OR Efficiency Project, we are sending you data on the cases you were involved with.
-The data reflects the joint efforts of your team, but helps you compare the way your team performs
-compared to others.
+We are now a few weeks into a concerted effort to improve our OR Efficiency, which will help us make the operating room a high quality and efficient experience for all involved, from patients to colleagues.  We have been sharing daily results for First Case On-Time Starts and Turnover on ORTV, which we hope you have seen.
+
+As part of the OR Efficiency project, we are sending you data on the cases you were involved with. The data reflects the joint efforts of your team, but helps you compare the way your team performs compared to others.
 
 Included are graphs of your data. An explanation:
     You are the blue bar in each graph
     The operational goal for the OR is the red bar
     All your colleagues are the grey bars (without names)
-    
+   
     For On Time Start, higher is better
     For Turnover Time, lower is better
 
-The data covers June 2023 to November 2023. If you have questions about the report, please contact your department leadership..
+The data covers January 2024. If you have questions about the report, contact Paul Alfille.
 
-We hope you will share any problems or solutions you discover with us to help the MGH ORs meet the
-goals.
+We absolutely welcome your feedback – this form is meant to be an easy way to share it. https://forms.office.com/r/Nd8Ksp2u4K. We hope you will share any problems or solutions you discover with us to help the MGH ORs meet the goals. 
 
 Your PeriOp Team
 """
