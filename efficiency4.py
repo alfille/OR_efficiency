@@ -311,7 +311,7 @@ class onTime(dataSetType):
     file_prompt       = "On Time %"
     goal = 80
 
-    class turnOver(dataSetType):
+class turnOver(dataSetType):
     target_column_raw = "Avg. ROOM_OUT_TO_IN_ADJ"
     target_column     = "Turnover minutes"
     file_prompt       = "Turnover minutes"
