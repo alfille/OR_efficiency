@@ -456,11 +456,11 @@ class eMailEdit( eMailReport ) :
 
     def save_json( self ):
         try:
+            print(json.dumps(self.jsondict, indent=4))
             temp_name = f"{self.json_file}.TEMP"
             with open( temp_name, "w" ) as temp_file:
                 json.dump( self.jsondict, temp_file, indent=4 )
             os.replace( temp_name, self.json_file )
-            print(json.dumps(self.jsondict, indent=4))
         except:
             print(sys.exec_info())
             print(f"Cannot write out updated JSON file {self.json_file}")
