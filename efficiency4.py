@@ -252,7 +252,7 @@ class dataSetType(dataSet):
                     palette = pal,
                     )
                 ax0.set(xlabel=f"{serve} members",xticklabels=[])
-                plt.title(f"{type(self).target_column} for {(person.split(','))[0]}\n{serve} cases: {cases}")
+                plt.title(f"{type(self).target_column} for {(person.split(','))[0]}\n{serve} cases: {cases}\n{type(self).good_direction}")
                 self.post_plot( person )
         else:
             hues, pal, df = self.make_df(person) # dataframe
@@ -309,12 +309,14 @@ class onTime(dataSetType):
     target_column_raw = "OnTime"
     target_column     = "On Time %"
     file_prompt       = "On Time %"
+    good_direction    = "higher is better"
     goal = 80
 
 class turnOver(dataSetType):
     target_column_raw = "Avg. ROOM_OUT_TO_IN_ADJ"
     target_column     = "Turnover minutes"
     file_prompt       = "Turnover minutes"
+    good_direction    = "lowerer is better"
     goal = 45
 
 class eMail(dataSetType):
