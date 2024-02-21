@@ -309,14 +309,14 @@ class onTime(dataSetType):
     target_column_raw = "OnTime"
     target_column     = "On Time %"
     file_prompt       = "On Time %"
-    good_direction    = "higher is better"
+    good_direction    = "higher is better ->"
     goal = 80
 
 class turnOver(dataSetType):
     target_column_raw = "Avg. ROOM_OUT_TO_IN_ADJ"
     target_column     = "Turnover minutes"
     file_prompt       = "Turnover minutes"
-    good_direction    = "lowerer is better"
+    good_direction    = "<- lower is better"
     goal = 45
 
 class eMail(dataSetType):
