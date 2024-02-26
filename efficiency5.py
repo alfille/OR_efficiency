@@ -395,7 +395,7 @@ Thank you to the observant folks who noticed the discepancy.
 
 Again, this data reflects contributions of the entire team and is meant to spur interest in improving operations.
 
-We absolutely welcome your feedback – this form is meant to be an easy way to share it. https://forms.office.com/r/Nd8Ksp2u4K. We hope you will share any problems or solutions you discover with us to help the MGH ORs meet the goals. 
+We absolutely welcome your feedback – this form is an easy way to respond: https://forms.office.com/r/Nd8Ksp2u4K. We hope you will share any problems or solutions you discover with us to help the MGH ORs meet the goals. 
 
 Your PeriOp Team
 """
