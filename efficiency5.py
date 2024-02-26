@@ -391,7 +391,9 @@ Dear Colleague,
 
 This is corrected January data. The prior data showed "ontime percentile" rather than "ontime percentage". 
 
-Thank you to the observant surgeons who noticed the discepancy.
+Thank you to the observant folks who noticed the discepancy.
+
+Again, this data reflects contributions of the entire team and is meant to spur interest in improving operations.
 
 We absolutely welcome your feedback – this form is meant to be an easy way to share it. https://forms.office.com/r/Nd8Ksp2u4K. We hope you will share any problems or solutions you discover with us to help the MGH ORs meet the goals. 
 
