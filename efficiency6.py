@@ -389,13 +389,21 @@ class eMail(dataSetType):
             newmail.Body = """
 Dear Colleague,
 
-This is corrected January data. The prior data showed "ontime percentile" rather than "ontime percentage". 
+We are now in the third month into a concerted effort to improve our OR Efficiency, which will help us make the operating room a high quality and efficient experience for all involved, from patients to colleagues.  We have been sharing daily results for First Case On-Time Starts and Turnover on ORTV, which we hope you have seen.  We have seen some improvement in the First Case On Time Starts, but have yet to see movement in the Turnover metric.
 
-Thank you to the observant folks who noticed the discepancy.
+As part of the OR Efficiency project, we are sending you data on the cases you were involved with. The data reflects the joint efforts of your team, but helps you compare the way your team performs compared to others.
 
-Again, this data reflects contributions of the entire team and is meant to spur interest in improving operations.
+Included are graphs of your data. An explanation:
+    You are the blue bar in each graph
+    The operational goal for the OR is the red bar
+    All your colleagues are the grey bars (without names)
+  
+    For On Time Start, higher is better
+    For Turnover Time, lower is better
 
-We absolutely welcome your feedback – this form is an easy way to respond: https://forms.office.com/r/Nd8Ksp2u4K. We hope you will share any problems or solutions you discover with us to help the MGH ORs meet the goals. 
+The data covers February 2024. If you have questions about the report, contact Paul Alfille.
+
+We absolutely welcome your feedback – this form is meant to be an easy way to submit it. https://forms.office.com/r/Nd8Ksp2u4K. We hope you will share any problems or solutions you discover with us to help the MGH ORs meet the goals.
 
 Your PeriOp Team
 """
